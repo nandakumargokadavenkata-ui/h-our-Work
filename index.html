@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MYTHIC GOD MODE vULTIMATE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030617;--card:#0b1133;--a:#00f5ff;--b:#7cff00;--r:#ff3b3b;--g:#ffd700;--t:#eef2ff;--m:#9aa4d6}
+*{box-sizing:border-box;font-family:Poppins;margin:0;padding:0}
+body{background:radial-gradient(circle at top,#14206e,var(--bg));color:var(--t)}
+header{text-align:center;padding:60px 20px}
+header h1{font-size:3.6rem;font-weight:800;background:linear-gradient(90deg,var(--g),var(--a),var(--b));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--m)}
+.container{max-width:1500px;margin:auto;padding:20px}
+.battle{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:32px}
+.card{background:linear-gradient(145deg,#1a247a,#05081f);border-radius:28px;padding:34px;box-shadow:0 0 80px rgba(0,0,0,.85);transition:.4s}
+.card.dim{opacity:.45;filter:grayscale(1)}
+.card:hover{transform:translateY(-14px) scale(1.05)}
+.card h2{font-size:2.4rem}
+.role{color:var(--m)}
+.hours{font-size:3.6rem;text-align:center;color:var(--a);margin:14px 0}
+.q{font-size:1rem;text-align:center;color:var(--b)}
+.controls{display:flex;gap:12px}
+button{flex:1;padding:16px;border:none;border-radius:18px;font-weight:700;cursor:pointer;background:linear-gradient(90deg,var(--a),var(--b));transition:.2s}
+button.sub{background:linear-gradient(90deg,#ff4d4d,#ff9a9a)}
+button:hover{transform:scale(1.08)}
+.leader{text-align:center;font-size:2.4rem;margin:40px 0;min-height:40px}
+.shadow{text-align:center;color:var(--g);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:30px;margin-top:70px}
+.box{background:var(--card);padding:30px;border-radius:26px;box-shadow:0 0 60px rgba(0,0,0,.8)}
+.box h3{color:var(--b);margin-bottom:14px}
+canvas{width:100%;height:220px}
+.log{font-size:.95rem;color:var(--m);line-height:1.7;max-height:240px;overflow:auto}
+.rule{color:var(--r);font-weight:700}
+#confetti{position:fixed;inset:0;pointer-events:none}
+footer{text-align:center;margin:120px 0 40px;color:var(--m)}
+</style>
+</head>
+
+<body>
+<header>
+<h1>⚔️HOURFORGE⚔️</h1>
+<p>Discipline • Competition • Intelligence</p>
+</header>
+
+<div class="container">
+<div class="shadow" id="shadow"></div>
+
+<section class="battle">
+<div class="card" id="cardN">
+<h2>Nanda</h2>
+<div class="role">GATE Aspirant</div>
+<div class="hours" id="nH">0</div>
+<div class="q" id="nQ"></div>
+<div class="controls">
+<button onclick="add('n')">+1 Hour</button>
+<button class="sub" onclick="sub('n')">-1 Hour</button>
+</div>
+</div>
+
+<div class="card" id="cardG">
+<h2>Giri</h2>
+<div class="role">JEE Aspirant</div>
+<div class="hours" id="gH">0</div>
+<div class="q" id="gQ"></div>
+<div class="controls">
+<button onclick="add('g')">+1 Hour</button>
+<button class="sub" onclick="sub('g')">-1 Hour</button>
+</div>
+</div>
+</section>
+
+<div class="leader" id="leader"></div>
+
+<section class="grid">
+<div class="box"><h3>📊 Daily Domination</h3><canvas id="chart"></canvas></div>
+<div class="box"><h3>🧠 AI Strategy</h3><p id="ai"></p></div>
+<div class="box"><h3>🔥 Burnout Monitor</h3><p id="burn"></p></div>
+<div class="box"><h3>📈 Exam Reality Check</h3><p id="reality"></p></div>
+<div class="box"><h3>🏆 History</h3><div id="history" class="log"></div></div>
+<div class="box">
+<h3>📝 Tomorrow’s Main Task</h3>
+<input id="task" placeholder="One most important task" style="width:100%;padding:14px;border-radius:14px;border:none;margin-bottom:10px"/>
+<button onclick="saveTask()">Save Task</button>
+<p id="savedTask" style="margin-top:10px;color:#ffd700"></p>
+</div>
+<div class="box"><h3>⚠️ Rules</h3><p class="rule">Max 12h/day • Zero-hour = strike • 3-loss streak = shame mode</p></div>
+</section>
+</div>
+
+<canvas id="confetti"></canvas>
+<footer>JUST A 100 DAYS OF FORGING AND PATH TO THE STRONGEST</footer>
+
+<script>
+let S=JSON.parse(localStorage.getItem('ULTIMATE'))||{task:'',day:1,date:new Date().toDateString(),n:0,g:0,nq:0,gq:0,log:[],total:{n:0,g:0},lose:{n:0,g:0}};
+const MAX=12;
+const beep=new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=');
+function vib(){navigator.vibrate&&navigator.vibrate(120)}
+
+function rollover(){
+let t=new Date().toDateString();
+if(S.date!==t){
+let w=S.n>S.g?'Nanda':S.g>S.n?'Giri':'Tie';
+if(w==='Nanda'){S.lose.g++;S.lose.n=0}
+else if(w==='Giri'){S.lose.n++;S.lose.g=0}
+else{S.lose.n=0;S.lose.g=0}
+S.log.unshift(`Day ${S.day}: ${w} (${S.n}h/Q${S.nq} vs ${S.g}h/Q${S.gq})`);
+S.total.n+=S.n;S.total.g+=S.g;
+S.day++;S.n=0;S.g=0;S.nq=0;S.gq=0;S.date=t;
+confettiBoom();
+}}
+
+function add(p){
+rollover();
+if((p==='n'&&S.n>=MAX)||(p==='g'&&S.g>=MAX)){alert('Daily limit reached');return;}
+if(p==='n'){S.n++;if(confirm('Deep work hour?'))S.nq++;}
+else{S.g++;if(confirm('Deep work hour?'))S.gq++;}
+beep.play();vib();render();
+}
+
+function sub(p){
+rollover();
+if(p==='n' && S.n>0){S.n--; if(S.nq>S.n) S.nq--;}
+if(p==='g' && S.g>0){S.g--; if(S.gq>S.g) S.gq--;}
+render();
+}
+
+function saveTask(){S.task=task.value;render();}
+
+function render(){
+savedTask.innerText=S.task?('Tomorrow: '+S.task):'';
+nH.innerText=S.n; gH.innerText=S.g;
+nQ.innerText=`Quality ${S.nq}/${S.n}`;
+gQ.innerText=`Quality ${S.gq}/${S.g}`;
+leader.innerText=S.n>S.g?'🔥 Nanda leads today':S.g>S.n?'⚡ Giri leads today':'🤝 Tie';
+shadow.innerText=S.n<S.g?`Giri ahead by ${S.g-S.n}h`:S.g<S.n?`Nanda ahead by ${S.n-S.g}h`:'';
+ai.innerText=S.n<S.g?'ATTACK MODE. Add focus blocks.':S.n>S.g?'DEFENSE MODE. Maintain lead.':'FINAL PUSH required.';
+burn.innerText=(S.total.n>280||S.total.g>280)?'⚠️ Burnout risk rising. Plan recovery.':'Burnout risk low.';
+reality.innerText=`At current pace → Nanda ~${Math.max(30,2000/(S.total.n+1)|0)} days | Giri ~${Math.max(30,1800/(S.total.g+1)|0)} days`;
+history.innerHTML=S.log.slice(0,12).join('<br>');
+cardN.classList.toggle('dim',S.lose.n>=3);
+cardG.classList.toggle('dim',S.lose.g>=3);
+draw();
+localStorage.setItem('ULTIMATE',JSON.stringify(S));
+}
+
+function draw(){
+let c=chart.getContext('2d');
+c.clearRect(0,0,chart.width,chart.height);
+let m=Math.max(S.n,S.g,1);
+c.fillStyle='#00f5ff';
+c.fillRect(80,200-(S.n/m*160),100,S.n/m*160);
+c.fillStyle='#7cff00';
+c.fillRect(240,200-(S.g/m*160),100,S.g/m*160);
+}
+
+function confettiBoom(){
+let c=confetti.getContext('2d'),w=confetti.width=innerWidth,h=confetti.height=innerHeight;
+let p=[...Array(220)].map(()=>({x:Math.random()*w,y:Math.random()*h,v:Math.random()*7+2}));
+let i=setInterval(()=>{
+c.clearRect(0,0,w,h);
+p.forEach(o=>{o.y+=o.v;c.fillStyle=Math.random()>.5?'#ffd700':'#00f5ff';c.fillRect(o.x,o.y,4,6)});
+},30);
+setTimeout(()=>clearInterval(i),7500);
+}
+
+rollover();render();
+</script>
+</body>
+</html>
